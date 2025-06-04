@@ -1,0 +1,33 @@
+[package]
+name = "main_wasm"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+public = { path = "../public" }
+dynamic_code = { path = "../dynamic_code"}
+route_websocket_client = { path = "../route_websocket_client"}
+wasm-bindgen = "0.2.100"
+web-sys = { version = "0.3.77", features = [
+  "WebSocket",
+  "MessageEvent",
+  "ErrorEvent",
+  "CloseEvent",
+  "BinaryType",
+  "Window",
+  "console"
+] }
+wasm_thread_manager = { path = "../wasm_thread_manager"}
+serde = "1.0.219"
+once_cell = "1.21.3"
+gloo-timers = { version = "0.3", features = ["futures"] }
+wgpu = "25.0.0"
+futures-intrusive = "0.5.0"
+bytemuck = "1.23.0"
+log = "0.4.27"
+console_log = "1.0.0"
+console_error_panic_hook = "0.1.7"
+js-sys = "0.3.77"
+
+[lib]
+crate-type = ["cdylib"]

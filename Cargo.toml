@@ -1,0 +1,7 @@
+[workspace]
+members = [ 
+    "dynamic_code",
+	"main_wasm",
+    "public", "route_websocket_client",
+    "thread_manager", "wasm_thread_manager"]
+resolver = "2"

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OpenCompute Worker Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.5rem;
+      margin: 0.5rem 0 1rem 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #output {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background-color: #eef1f5;
+      border-left: 4px solid #007bff;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>OpenCompute Worker Demo</h1>
+
+  <label for="uid-input">Enter Token:</label>
+  <input type="text" id="uid-input" placeholder="e.g., your-jwt-token-here" />
+  <button id="run">Run</button>
+
+  <p id="output">Login Status: ...</p>
+
+  <script type="module">
+    import init, { worker_start } from "./main_wasm.js";
+
+    async function runWasm() {
+      await init(); // Initialize the WASM module
+
+      const uidInput = document.getElementById("uid-input").value.trim();
+      const defaultUid = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoidy1kdW50eSIsImV4cCI6MTc0ODY4MzYxMn0.zSln2697A3RNPbzVgmpmcsaRD7Pvj-3AAd_hpGYcAB0";
+      const workerName = uidInput !== "" ? uidInput : defaultUid;
+
+      try {
+        const result = worker_start(workerName);
+        document.getElementById("output").textContent = "Login Status: " + result;
+      } catch (err) {
+        console.error(err);
+        document.getElementById("output").textContent = "Login Status: Error - " + err;
+      }
+    }
+
+    document.getElementById("run").addEventListener("click", runWasm);
+  </script>
+</body>
+</html>

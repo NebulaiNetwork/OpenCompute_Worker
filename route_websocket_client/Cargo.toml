@@ -1,0 +1,26 @@
+[package]
+name = "route_websocket_client"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+futures = "0.3"
+futures-util = "0.3.31"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+public = { path = "../public"}
+wasm-bindgen = "0.2.100"
+web-sys = { version = "0.3.77", features = [
+  "WebSocket",
+  "MessageEvent",
+  "ErrorEvent",
+  "CloseEvent",
+  "BinaryType",
+  "Window",
+  "console"
+] }
+js-sys = "0.3.77"
+wasm-bindgen-futures = "0.4.50"
+gloo-timers = { version = "0.3", features = ["futures"] }
+

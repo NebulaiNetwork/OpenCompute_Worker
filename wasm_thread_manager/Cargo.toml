@@ -1,0 +1,9 @@
+[package]
+name = "wasm_thread_manager"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+futures = "0.3.31"
+once_cell = "1.21.3"
+wasm-bindgen-futures = "0.4.50"
