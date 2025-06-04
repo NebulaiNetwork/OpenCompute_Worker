@@ -65,7 +65,7 @@
   <p id="output">Login Status: ...</p>
 
   <script type="module">
-    import init, { worker_start } from "./main_wasm.js";
+    import init, { worker_start } from "./oc_worker.js";
 
     async function runWasm() {
       await init(); // Initialize the WASM module
