@@ -1,6 +1,6 @@
 
 use crate::{protocol::BaseMsg};
-use public::{parse_json};
+use public::{parse_json, decode};
 
 use crate::{protocol};
 use dynamic_code::{DynamicCode};
@@ -22,7 +22,7 @@ pub async fn worker_hello(code: i16, _payload: String){
 	}
 }
 
-pub async fn worker_init(_code: i16, payload: String){
+pub async fn worker_init(_code: i16, payload: String, big_payload: String){
 
 	match parse_json::<BaseMsg>(&payload){
 		Ok(mut base_msg) => {
@@ -30,15 +30,22 @@ pub async fn worker_init(_code: i16, payload: String){
 
 			match parse_json::<protocol::InitCodePayload>(&msg_info.payload){
 				Ok(init_code_payload) => {
-					match DynamicCode::new(&init_code_payload.code){
+                    
+                    let init_code = decode(&big_payload, base_msg.event_id);
+                    let init_code: String = parse_json(&init_code).unwrap();
+
+					match DynamicCode::new(&init_code){
 						Ok(dcm) => {
 							DYNC_CODE.with(|code| {
 							    code.borrow_mut().replace(dcm);
 							});
-
+                            web_sys::console::log_1(&format!("init code succ").into());
 							protocol::worker_init(base_msg.event_id, init_code_payload.source_uid, true, "".to_string());
 						},
-						Err(e) => protocol::worker_init(base_msg.event_id, init_code_payload.source_uid, false, e.to_string()),
+						Err(e) => {
+                            web_sys::console::log_1(&format!("init code failed {:?}", e.to_string()).into());
+                            protocol::worker_init(base_msg.event_id, init_code_payload.source_uid, false, e.to_string());
+                        },
 					}
 				},
 				Err(e) => web_sys::console::log_1(&format!("parse InitCodePayload msg error:{}", e.to_string()).into())
@@ -53,7 +60,6 @@ pub async fn worker_init(_code: i16, payload: String){
 struct DynamicRunCodeInfo{
 	source_uid	: String,
 	func	: String,
-	input	: String,
 	output	: i16,
 }
 
@@ -66,7 +72,7 @@ macro_rules! call_and_send {
     };
 }
 
-pub async fn worker_run(_code: i16, payload: String) {
+pub async fn worker_run(_code: i16, payload: String, big_payload: String) {
     match parse_json::<BaseMsg>(&payload) {
         Ok(mut base_msg) => {
             let msg_info = base_msg.get_msg();
@@ -81,14 +87,17 @@ pub async fn worker_run(_code: i16, payload: String) {
 
                 let call_func: DynamicRunCodeInfo = parse_json(&msg_info.payload).unwrap();
 
+                let input = decode(&big_payload, base_msg.event_id);
+                let input: String = parse_json(&input).unwrap();
+
                 let (result, error) = match call_func.output {
-                    1 => call_and_send!(c, i32, &call_func.func, &call_func.input),
-                    2 => call_and_send!(c, f32, &call_func.func, &call_func.input),
-                    3 => call_and_send!(c, String, &call_func.func, &call_func.input),
-                    4 => call_and_send!(c, Vec<i32>, &call_func.func, &call_func.input),
-                    5 => call_and_send!(c, Vec<f32>, &call_func.func, &call_func.input),
-                    6 => call_and_send!(c, Vec<Vec<i32>>, &call_func.func, &call_func.input),
-                    7 => call_and_send!(c, Vec<Vec<f32>>, &call_func.func, &call_func.input),
+                    1 => call_and_send!(c, i32, &call_func.func, &input),
+                    2 => call_and_send!(c, f32, &call_func.func, &input),
+                    3 => call_and_send!(c, String, &call_func.func, &input),
+                    4 => call_and_send!(c, Vec<i32>, &call_func.func, &input),
+                    5 => call_and_send!(c, Vec<f32>, &call_func.func, &input),
+                    6 => call_and_send!(c, Vec<Vec<i32>>, &call_func.func, &input),
+                    7 => call_and_send!(c, Vec<Vec<f32>>, &call_func.func, &input),
                     _ => ("".to_string(), "no support this type".to_string()),
                 };
 

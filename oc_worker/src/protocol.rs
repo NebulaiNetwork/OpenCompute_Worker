@@ -68,16 +68,15 @@ pub struct RunCodePayload {
 
 #[derive(Deserialize, Serialize)]
 struct RunCodeResult{
-	source_uid	: String,
-	error	: String,
-	result	: String,
+    operator_id : u64,
+	error	    : String,
+	result	    : String,
 }
 
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct InitCodePayload {
     pub source_uid: String,
-    pub code: String,
 }
 
 #[derive(Serialize)]
@@ -87,39 +86,45 @@ struct InitCodeResult{
     payload : String,
 }
 
-pub fn direct_send_error_msg(other_msg: String) {
-    let error_msg_s = BaseMsg::new(0, MsgInfo::new(0, other_msg));
+// pub fn direct_send_error_msg(other_msg: String) {
+//     let error_msg_s = BaseMsg::new(0, MsgInfo::new(0, other_msg));
 
-    let json_str = build_json(&error_msg_s).unwrap();
+//     let json_str = build_json(&error_msg_s).unwrap();
     
-    send_msg_to_ws_server("error".to_string(), json_str);
-}
+//     send_msg_to_ws_server("error".to_string(), json_str, "".to_string());
+// }
 
 pub fn send_msg_to_verifier(route: String, other_msg: String){
     let msg_s = BaseMsg::new(rand_u64(), MsgInfo::new(0, other_msg));
 
     let json_str = build_json(&msg_s).unwrap();
 
-    send_msg_to_ws_server(route, json_str);
+    send_msg_to_ws_server(route, json_str, "".to_string());
 }
 
-pub fn send_msg_to_verifier_by_event_id(event_id: u64, route: String, other_msg: String){
-    let msg_s = BaseMsg::new(event_id, MsgInfo::new(0, other_msg));
+// pub fn send_msg_to_verifier_by_event_id(event_id: u64, route: String, other_msg: String){
+//     let msg_s = BaseMsg::new(event_id, MsgInfo::new(0, other_msg));
 
-    let json_str = build_json(&msg_s).unwrap();
+//     let json_str = build_json(&msg_s).unwrap();
 
-    send_msg_to_ws_server(route, json_str);
-}
+//     send_msg_to_ws_server(route, json_str, "".to_string());
+// }
 
 pub fn send_msg_to_verifier_by_event_id_op_id(route: String, event_id: u64, op_id: u64, other_msg: String){
     let msg_s = BaseMsg::new(event_id, MsgInfo::new(op_id, other_msg));
 
     let json_str = build_json(&msg_s).unwrap();
 
-    send_msg_to_ws_server(route, json_str);
+    send_msg_to_ws_server(route, json_str, "".to_string());
 }
 
+pub fn send_big_payload_msg_to_verifier(event_id: u64, op_id: u64, route: String, other_msg: String, big_paylaod_msg: String){
+    let msg_s = BaseMsg::new(event_id, MsgInfo::new(op_id, other_msg));
 
+    let json_str = build_json(&msg_s).unwrap();
+
+    send_msg_to_ws_server(route, json_str, encode(&big_paylaod_msg, event_id));
+}
 
 pub fn worker_hello(){
     send_msg_to_verifier("worker/hello".to_string(), "".to_string());
@@ -137,15 +142,11 @@ pub fn worker_init(event_id: u64, source_uid: String, succ: bool, more_info: Str
 }
 
 pub fn worker_run(event_id: u64, op_id: u64, source_uid: String, result: String, error: String){
-    let tmp_payload = RunCodeResult {source_uid, error, result};
+    let tmp_payload = RunCodeResult {operator_id: op_id, error: error, result: result};
 
     let run_code_payload = build_json(&tmp_payload).unwrap();
-    send_msg_to_verifier_by_event_id_op_id(
-        "worker/run".to_string(),
-        event_id,
-        op_id,
-        run_code_payload,
-    );
+
+    send_big_payload_msg_to_verifier(event_id, op_id, "worker/run".to_string(), source_uid, run_code_payload);
 }
 
 // pub fn worker_close(event_id: u64){
